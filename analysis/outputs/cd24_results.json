@@ -1,0 +1,22 @@
+{
+  "dataset": "GSE15852",
+  "gene": "CD24",
+  "platform": "GPL96",
+  "probe_ids": [
+    "208650_s_at",
+    "208651_x_at",
+    "209771_x_at",
+    "209772_s_at",
+    "216379_x_at",
+    "266_s_at"
+  ],
+  "pair_count": 43,
+  "normal_median_log2_expression": 8.36507250644462,
+  "tumor_median_log2_expression": 10.84483112297762,
+  "median_paired_log2_difference": 2.6058344337743566,
+  "median_paired_fold_change": 6.087434878513577,
+  "tumor_higher_pair_count": 41,
+  "wilcoxon_statistic": 12.0,
+  "p_value": 1.5916157281026244e-11,
+  "supports_claim": true
+}
