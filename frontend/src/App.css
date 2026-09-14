@@ -275,6 +275,310 @@ h1 {
   color: #6e571c;
 }
 
+.claim-form {
+  display: grid;
+  gap: 12px;
+}
+
+.claim-form label {
+  color: #173d37;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.claim-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 16px;
+  border: 1px solid #a9ccc5;
+  border-radius: 12px;
+  background: white;
+  color: #172523;
+  font: inherit;
+  font-size: 17px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.claim-form textarea:focus {
+  border-color: #197566;
+  outline: 3px solid rgba(25, 117, 102, 0.14);
+}
+
+.claim-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.claim-actions span {
+  color: #71807d;
+  font-size: 13px;
+}
+
+.claim-actions button {
+  padding: 12px 20px;
+  border: 0;
+  border-radius: 10px;
+  background: #197566;
+  color: white;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.claim-actions button:hover {
+  background: #125f53;
+}
+
+.claim-actions button:disabled,
+.claim-form textarea:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.submitted-claim {
+  margin-top: 34px;
+  padding: 22px 26px;
+  border-left: 4px solid #197566;
+  border-radius: 10px;
+  background: #f3f8f7;
+}
+
+.submitted-claim h2 {
+  margin: 0;
+  color: #173d37;
+  font-size: 21px;
+  line-height: 1.5;
+}
+
+.evidence-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+.evidence-summary span {
+  padding: 8px 13px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.summary-support {
+  background: #d9f4e8;
+  color: #176445;
+}
+
+.summary-contradict {
+  background: #fde1df;
+  color: #9c302a;
+}
+
+.summary-unclear {
+  background: #fff0c7;
+  color: #806019;
+}
+
+.summary-na {
+  background: #eceff1;
+  color: #596368;
+}
+
+.badge.contradict {
+  background: #fde1df;
+  color: #9c302a;
+}
+
+.badge.not-applicable {
+  background: #eceff1;
+  color: #596368;
+}
+
+.evidence-passage {
+  margin: 20px 0;
+  padding: 16px;
+  border-left: 4px solid #d7a93c;
+  border-radius: 6px;
+  background: #fffaf0;
+  color: #52625f;
+}
+
+.evidence-passage p {
+  margin: 6px 0 0;
+}
+
+.empty-state {
+  padding: 34px;
+  border: 1px dashed #b9cbc7;
+  border-radius: 16px;
+  text-align: center;
+}
+
+.empty-state h3 {
+  margin-top: 0;
+  color: #172523;
+}
+
+.empty-state p {
+  margin-bottom: 0;
+  color: #52625f;
+}
+
+.claim-form {
+  display: grid;
+  gap: 12px;
+}
+
+.claim-form label {
+  color: #173d37;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.claim-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 16px;
+  border: 1px solid #a9ccc5;
+  border-radius: 12px;
+  background: white;
+  color: #172523;
+  font: inherit;
+  font-size: 17px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.claim-form textarea:focus {
+  border-color: #197566;
+  outline: 3px solid rgba(25, 117, 102, 0.14);
+}
+
+.claim-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.claim-actions span {
+  color: #71807d;
+  font-size: 13px;
+}
+
+.claim-actions button {
+  padding: 12px 20px;
+  border: 0;
+  border-radius: 10px;
+  background: #197566;
+  color: white;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.claim-actions button:hover {
+  background: #125f53;
+}
+
+.claim-actions button:disabled,
+.claim-form textarea:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.submitted-claim {
+  margin-top: 34px;
+  padding: 22px 26px;
+  border-left: 4px solid #197566;
+  border-radius: 10px;
+  background: #f3f8f7;
+}
+
+.submitted-claim h2 {
+  margin: 0;
+  color: #173d37;
+  font-size: 21px;
+  line-height: 1.5;
+}
+
+.evidence-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+.evidence-summary span {
+  padding: 8px 13px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.summary-support {
+  background: #d9f4e8;
+  color: #176445;
+}
+
+.summary-contradict {
+  background: #fde1df;
+  color: #9c302a;
+}
+
+.summary-unclear {
+  background: #fff0c7;
+  color: #806019;
+}
+
+.summary-na {
+  background: #eceff1;
+  color: #596368;
+}
+
+.badge.contradict {
+  background: #fde1df;
+  color: #9c302a;
+}
+
+.badge.not-applicable {
+  background: #eceff1;
+  color: #596368;
+}
+
+.evidence-passage {
+  margin: 20px 0;
+  padding: 16px;
+  border-left: 4px solid #d7a93c;
+  border-radius: 6px;
+  background: #fffaf0;
+  color: #52625f;
+}
+
+.evidence-passage p {
+  margin: 6px 0 0;
+}
+
+.empty-state {
+  padding: 34px;
+  border: 1px dashed #b9cbc7;
+  border-radius: 16px;
+  text-align: center;
+}
+
+.empty-state h3 {
+  margin-top: 0;
+  color: #172523;
+}
+
+.empty-state p {
+  margin-bottom: 0;
+  color: #52625f;
+}
+
 @media (max-width: 850px) {
   .metrics {
     grid-template-columns: repeat(2, 1fr);

@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
+import type { FormEvent } from "react";
 import "./App.css";
+
+const DEFAULT_CLAIM =
+  "CD24 expression is higher in primary breast carcinoma tissue than in patient-matched normal breast tissue.";
 
 type Paper = {
   paper_id: string;
@@ -10,13 +14,24 @@ type Paper = {
   source_url: string;
   sample_size: string;
   main_finding: string;
+  evidence_passage: string;
   classification: string;
   classification_reason: string;
   limitations: string;
 };
 
-type PapersResponse = {
-  count: number;
+type ClassificationCounts = {
+  support: number;
+  contradict: number;
+  unclear: number;
+  "not applicable": number;
+};
+
+type InvestigationResponse = {
+  claim: string;
+  total_screened: number;
+  relevant_count: number;
+  classification_counts: ClassificationCounts;
   papers: Paper[];
 };
 
@@ -34,37 +49,84 @@ type AnalysisResult = {
 };
 
 function App() {
+  const [claimInput, setClaimInput] = useState(DEFAULT_CLAIM);
+  const [submittedClaim, setSubmittedClaim] = useState("");
   const [papers, setPapers] = useState<Paper[]>([]);
+  const [totalScreened, setTotalScreened] = useState(0);
+  const [counts, setCounts] = useState<ClassificationCounts | null>(null);
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    async function loadInvestigation() {
-      try {
-        const [papersResponse, analysisResponse] = await Promise.all([
-          fetch("http://127.0.0.1:8000/papers"),
-          fetch("http://127.0.0.1:8000/analysis/cd24"),
-        ]);
+  async function investigateClaim(claim: string) {
+    setLoading(true);
+    setError("");
 
-        if (!papersResponse.ok || !analysisResponse.ok) {
-          throw new Error("The backend returned an error.");
+    try {
+      const investigationResponse = await fetch(
+        "http://127.0.0.1:8000/investigate",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ claim }),
+        },
+      );
+
+      if (!investigationResponse.ok) {
+        throw new Error("The investigation request failed.");
+      }
+
+      const investigationData: InvestigationResponse =
+        await investigationResponse.json();
+
+      setSubmittedClaim(investigationData.claim);
+      setPapers(investigationData.papers);
+      setTotalScreened(investigationData.total_screened);
+      setCounts(investigationData.classification_counts);
+
+      if (claim.toUpperCase().includes("CD24")) {
+        const analysisResponse = await fetch(
+          "http://127.0.0.1:8000/analysis/cd24",
+        );
+
+        if (!analysisResponse.ok) {
+          throw new Error("The dataset analysis could not be loaded.");
         }
 
-        const papersData: PapersResponse = await papersResponse.json();
-        const analysisData: AnalysisResult = await analysisResponse.json();
+        const analysisData: AnalysisResult =
+          await analysisResponse.json();
 
-        setPapers(papersData.papers);
         setAnalysis(analysisData);
-      } catch {
-        setError("Could not load the EvidenceLens investigation.");
-      } finally {
-        setLoading(false);
+      } else {
+        setAnalysis(null);
       }
+    } catch {
+      setError(
+        "Could not complete the investigation. Make sure the backend is running.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    investigateClaim(DEFAULT_CLAIM);
+  }, []);
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const cleanedClaim = claimInput.trim();
+
+    if (cleanedClaim.length < 10) {
+      setError("Please enter a more specific biomedical claim.");
+      return;
     }
 
-    loadInvestigation();
-  }, []);
+    investigateClaim(cleanedClaim);
+  }
 
   return (
     <main className="page">
@@ -78,18 +140,38 @@ function App() {
       </header>
 
       <section className="claim-panel">
-        <p className="label">PILOT CLAIM</p>
-        <h2>
-          CD24 expression is higher in primary breast carcinoma tissue than in
-          patient-matched normal breast tissue.
-        </h2>
+        <p className="label">INVESTIGATE A CLAIM</p>
+
+        <form className="claim-form" onSubmit={handleSubmit}>
+          <label htmlFor="claim">Biomedical claim</label>
+
+          <textarea
+            id="claim"
+            value={claimInput}
+            onChange={(event) => setClaimInput(event.target.value)}
+            rows={4}
+            disabled={loading}
+          />
+
+          <div className="claim-actions">
+            <span>{claimInput.trim().length} characters</span>
+
+            <button type="submit" disabled={loading}>
+              {loading ? "Investigating..." : "Investigate claim"}
+            </button>
+          </div>
+        </form>
       </section>
 
-      {loading && <p className="status-message">Loading investigation…</p>}
       {error && <p className="error">{error}</p>}
 
-      {!loading && !error && (
+      {!loading && !error && submittedClaim && (
         <>
+          <section className="submitted-claim">
+            <p className="label">CURRENT INVESTIGATION</p>
+            <h2>{submittedClaim}</h2>
+          </section>
+
           <section className="results">
             <div className="results-heading">
               <div>
@@ -97,51 +179,96 @@ function App() {
                 <h2>Evidence results</h2>
               </div>
 
-              <span className="paper-count">{papers.length} papers</span>
+              <span className="paper-count">
+                {papers.length} relevant of {totalScreened} screened
+              </span>
             </div>
 
-            <div className="paper-grid">
-              {papers.map((paper) => (
-                <article className="paper-card" key={paper.paper_id}>
-                  <div className="card-top">
-                    <span className={`badge ${paper.classification}`}>
-                      {paper.classification}
-                    </span>
+            {counts && (
+              <div className="evidence-summary">
+                <span className="summary-support">
+                  {counts.support} supporting
+                </span>
+                <span className="summary-contradict">
+                  {counts.contradict} contradicting
+                </span>
+                <span className="summary-unclear">
+                  {counts.unclear} unclear
+                </span>
+                <span className="summary-na">
+                  {counts["not applicable"]} not applicable
+                </span>
+              </div>
+            )}
 
-                    <span className="paper-id">{paper.paper_id}</span>
-                  </div>
+            {papers.length === 0 ? (
+              <div className="empty-state">
+                <h3>No relevant papers found</h3>
+                <p>
+                  The current pilot library may not contain evidence for this
+                  claim.
+                </p>
+              </div>
+            ) : (
+              <div className="paper-grid">
+                {papers.map((paper) => (
+                  <article className="paper-card" key={paper.paper_id}>
+                    <div className="card-top">
+                      <span
+                        className={`badge ${paper.classification.replace(
+                          /\s+/g,
+                          "-",
+                        )}`}
+                      >
+                        {paper.classification}
+                      </span>
 
-                  <h3>{paper.title}</h3>
+                      <span className="paper-id">{paper.paper_id}</span>
+                    </div>
 
-                  <p className="citation">
-                    {paper.authors} · {paper.journal} · {paper.year}
-                  </p>
+                    <h3>{paper.title}</h3>
 
-                  {paper.sample_size && (
-                    <p>
-                      <strong>Samples:</strong> {paper.sample_size}
+                    <p className="citation">
+                      {paper.authors} | {paper.journal} | {paper.year}
                     </p>
-                  )}
 
-                  <p>
-                    <strong>Finding:</strong> {paper.main_finding}
-                  </p>
+                    {paper.sample_size && (
+                      <p>
+                        <strong>Samples:</strong> {paper.sample_size}
+                      </p>
+                    )}
 
-                  <div className="reason">
-                    <strong>Why this classification?</strong>
-                    <p>{paper.classification_reason}</p>
-                  </div>
+                    <p>
+                      <strong>Finding:</strong> {paper.main_finding}
+                    </p>
 
-                  <p className="limitation">
-                    <strong>Limitation:</strong> {paper.limitations}
-                  </p>
+                    {paper.evidence_passage && (
+                      <blockquote className="evidence-passage">
+                        <strong>Evidence passage</strong>
+                        <p>{paper.evidence_passage}</p>
+                      </blockquote>
+                    )}
 
-                  <a href={paper.source_url} target="_blank" rel="noreferrer">
-                    View original source →
-                  </a>
-                </article>
-              ))}
-            </div>
+                    <div className="reason">
+                      <strong>Why this classification?</strong>
+                      <p>{paper.classification_reason}</p>
+                    </div>
+
+                    <p className="limitation">
+                      <strong>Limitation:</strong> {paper.limitations}
+                    </p>
+
+                    <a
+                      href={paper.source_url}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      View original source
+                    </a>
+                  </article>
+                ))}
+              </div>
+            )}
           </section>
 
           {analysis && (
@@ -186,7 +313,7 @@ function App() {
                 <div className="metric">
                   <span>Median fold change</span>
                   <strong>
-                    {analysis.median_paired_fold_change.toFixed(2)}×
+                    {analysis.median_paired_fold_change.toFixed(2)}x
                   </strong>
                 </div>
 
