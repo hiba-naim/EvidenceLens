@@ -18,6 +18,9 @@ type Paper = {
   classification: string;
   classification_reason: string;
   limitations: string;
+  relevance_score: number;
+  matched_terms: string[];
+  match_explanation: string;
 };
 
 type ClassificationCounts = {
@@ -25,6 +28,7 @@ type ClassificationCounts = {
   contradict: number;
   unclear: number;
   "not applicable": number;
+  "not assessed": number;
 };
 
 type InvestigationResponse = {
@@ -86,7 +90,10 @@ function App() {
       setTotalScreened(investigationData.total_screened);
       setCounts(investigationData.classification_counts);
 
-      if (claim.toUpperCase().includes("CD24")) {
+      if (
+  claim.trim().toLowerCase()
+  === DEFAULT_CLAIM.toLowerCase()
+) {
         const analysisResponse = await fetch(
           "http://127.0.0.1:8000/analysis/cd24",
         );
@@ -198,6 +205,11 @@ function App() {
                 <span className="summary-na">
                   {counts["not applicable"]} not applicable
                 </span>
+{counts["not assessed"] > 0 && (
+  <span className="summary-not-assessed">
+    {counts["not assessed"]} not assessed
+  </span>
+)}
               </div>
             )}
 
@@ -223,14 +235,24 @@ function App() {
                         {paper.classification}
                       </span>
 
-                      <span className="paper-id">{paper.paper_id}</span>
-                    </div>
+                      <div className="paper-ranking">
+  <span className="relevance-score">
+    {Math.round(paper.relevance_score * 100)}% match
+  </span>
 
-                    <h3>{paper.title}</h3>
+  <span className="paper-id">{paper.paper_id}</span>
+</div>
+</div>
+
+<h3>{paper.title}</h3>
 
                     <p className="citation">
                       {paper.authors} | {paper.journal} | {paper.year}
                     </p>
+		<div className="retrieval-note">
+  <strong>Why this paper matched</strong>
+  <p>{paper.match_explanation}</p>
+</div>
 
                     {paper.sample_size && (
                       <p>

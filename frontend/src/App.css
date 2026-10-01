@@ -579,6 +579,41 @@ h1 {
   color: #52625f;
 }
 
+.paper-ranking {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.relevance-score {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #e5f3f0;
+  color: #176445;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.retrieval-note {
+  margin: 16px 0;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: #f7faf9;
+  color: #42534f;
+  font-size: 14px;
+}
+
+.retrieval-note p {
+  margin: 5px 0 0;
+  color: #52625f;
+}
+
+.summary-not-assessed,
+.badge.not-assessed {
+  background: #e8e7f5;
+  color: #514b86;
+}
+
 @media (max-width: 850px) {
   .metrics {
     grid-template-columns: repeat(2, 1fr);

@@ -1,12 +1,12 @@
 import csv
 import json
-import re
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
+from retrieval import find_relevant_papers
 
 
 app = FastAPI(
@@ -38,116 +38,20 @@ PLOT_PATH = (
     PROJECT_ROOT / "analysis" / "outputs" / "cd24_paired_expression.png"
 )
 
+PILOT_CLAIM = (
+    "CD24 expression is higher in primary breast carcinoma tissue "
+    "than in patient-matched normal breast tissue."
+)
+
+
+def normalize_claim(claim):
+    return " ".join(
+        claim.lower().strip().split()
+    )
+
 class InvestigationRequest(BaseModel):
     claim: str
 
-
-SEARCH_FIELDS = (
-    "title",
-    "gene",
-    "main_finding",
-    "evidence_passage",
-    "classification_reason",
-)
-
-STOP_WORDS = {
-    "a",
-    "an",
-    "and",
-    "are",
-    "as",
-    "at",
-    "be",
-    "breast",
-    "by",
-    "cancer",
-    "expression",
-    "for",
-    "from",
-    "higher",
-    "in",
-    "is",
-    "normal",
-    "of",
-    "patient",
-    "primary",
-    "than",
-    "the",
-    "tissue",
-    "to",
-    "tumor",
-}
-
-
-def extract_search_terms(claim):
-    words = re.findall(r"[a-zA-Z0-9]+", claim.lower())
-
-    return {
-        word
-        for word in words
-        if len(word) > 2 and word not in STOP_WORDS
-    }
-
-
-def find_relevant_papers(claim, papers):
-    claim_upper = claim.upper()
-
-    known_genes = {
-        paper["gene"].strip().upper()
-        for paper in papers
-        if paper.get("gene", "").strip()
-    }
-
-    mentioned_genes = {
-        gene
-        for gene in known_genes
-        if re.search(
-            rf"\b{re.escape(gene)}\b",
-            claim_upper,
-        )
-    }
-
-    if mentioned_genes:
-        return [
-            paper
-            for paper in papers
-            if paper.get("gene", "").strip().upper()
-            in mentioned_genes
-        ]
-
-    search_terms = extract_search_terms(claim)
-    relevant_papers = []
-
-    for paper in papers:
-        searchable_text = " ".join(
-            paper.get(field, "")
-            for field in SEARCH_FIELDS
-        ).lower()
-
-        matched_terms = {
-            term
-            for term in search_terms
-            if term in searchable_text
-        }
-
-        if matched_terms:
-            paper_with_score = dict(paper)
-            paper_with_score["matched_terms"] = sorted(
-                matched_terms
-            )
-            paper_with_score["relevance_score"] = len(
-                matched_terms
-            )
-            relevant_papers.append(paper_with_score)
-
-    return sorted(
-        relevant_papers,
-        key=lambda paper: paper.get(
-            "relevance_score",
-            0,
-        ),
-        reverse=True,
-    )
 
 def read_papers():
     if not PAPERS_PATH.exists():
@@ -208,11 +112,31 @@ def investigate_claim(request: InvestigationRequest):
         papers,
     )
 
+    is_pilot_claim = (
+        normalize_claim(claim)
+        == normalize_claim(PILOT_CLAIM)
+    )
+
+    if not is_pilot_claim:
+        updated_papers = []
+
+        for paper in relevant_papers:
+            updated_paper = dict(paper)
+            updated_paper["classification"] = "not assessed"
+            updated_paper["classification_reason"] = (
+                "This paper is relevant to the submitted claim, "
+                "but its evidence stance has not yet been assessed."
+            )
+            updated_papers.append(updated_paper)
+
+        relevant_papers = updated_papers
+
     classification_counts = {
         "support": 0,
         "contradict": 0,
         "unclear": 0,
         "not applicable": 0,
+        "not assessed": 0,
     }
 
     for paper in relevant_papers:
@@ -223,7 +147,6 @@ def investigate_claim(request: InvestigationRequest):
 
         if classification in classification_counts:
             classification_counts[classification] += 1
-
     return {
         "claim": claim,
         "total_screened": len(papers),
