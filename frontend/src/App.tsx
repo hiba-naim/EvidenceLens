@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import "./App.css";
+import StudyComparison from "./StudyComparison";
 
 const DEFAULT_CLAIM =
   "CD24 expression is higher in primary breast carcinoma tissue than in patient-matched normal breast tissue.";
@@ -12,7 +13,12 @@ type Paper = {
   year: string;
   journal: string;
   source_url: string;
+  study_type: string;
+  population: string;
   sample_size: string;
+  biological_material: string;
+  gene: string;
+  measurement_method: string;
   main_finding: string;
   evidence_passage: string;
   classification: string;
@@ -289,8 +295,13 @@ function App() {
                     </a>
                   </article>
                 ))}
-              </div>
+                           </div>
             )}
+
+            <StudyComparison
+              key={submittedClaim}
+              papers={papers}
+            />
           </section>
 
           {analysis && (
